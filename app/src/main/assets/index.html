@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Мишка-помощник</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@500;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Нежный розово-бело-красный мир: белые карточки на румяном фоне, красный только для главного действия */
+  --blush:#FDEFF3;
+  --rose:#F8C9D4;
+  --rose-deep:#EE9DB0;
+  --red:#E0314B;
+  --berry:#A61E38;
+  --white:#FFFFFF;
+  --ink:#4A2430;
+  --muted:#9A6F7B;
+  --line:#F3D7DF;
+  --ok:#3FA36B;
+  --display:"Comfortaa","Nunito",system-ui,sans-serif;
+  --body:"Nunito",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --r:22px;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--blush);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+.app{max-width:520px;margin:0 auto;min-height:100%;padding:calc(env(safe-area-inset-top) + 14px) 16px calc(96px + env(safe-area-inset-bottom))}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance}
+h1{font-size:24px}
+h2{font-size:18px}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.row{display:flex;gap:10px;align-items:center}
+.wrap{flex-wrap:wrap}
+.grow{flex:1;min-width:0}
+.stack{display:flex;flex-direction:column;gap:14px}
+.card{background:var(--white);border-radius:var(--r);padding:16px;box-shadow:0 6px 20px -12px rgba(166,30,56,.35)}
+.card h2{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.icon{width:22px;height:22px;flex:none}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:999px;background:var(--blush);color:var(--berry);font-size:12px;font-weight:700}
+.pill.red{background:var(--red);color:#fff}
+.btn{border:0;border-radius:16px;padding:12px 16px;font-weight:800;background:var(--red);color:#fff;box-shadow:0 6px 14px -8px var(--red);transition:transform .12s}
+.btn:active{transform:scale(.96)}
+.btn.soft{background:var(--blush);color:var(--berry);box-shadow:none}
+.btn.ghost{background:transparent;color:var(--muted);box-shadow:none;padding:8px}
+.btn.wide{width:100%}
+input[type=text],input[type=date],input[type=time],select,textarea{width:100%;border:2px solid var(--line);border-radius:14px;padding:10px 12px;background:#fff;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--rose-deep)}
+.list{display:flex;flex-direction:column;gap:8px;margin:0;padding:0;list-style:none}
+.item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:16px;background:var(--blush)}
+.item .t{flex:1;min-width:0;overflow-wrap:anywhere}
+.item.done .t{text-decoration:line-through;color:var(--muted)}
+.check{width:30px;height:30px;border-radius:50%;border:2px solid var(--rose-deep);background:#fff;display:grid;place-items:center;flex:none;padding:0}
+.check.on{background:var(--red);border-color:var(--red)}
+.check svg{width:16px;height:16px;opacity:0}
+.check.on svg{opacity:1}
+.x{border:0;background:none;color:var(--muted);padding:6px;font-size:18px;line-height:1}
+.tag{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+/* header */
+.hello{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.hello .bear-mini{width:64px;height:64px;flex:none}
+.bubble{position:relative;background:#fff;border-radius:18px;padding:10px 14px;font-weight:600;box-shadow:0 6px 20px -14px rgba(166,30,56,.5)}
+.bubble:before{content:"";position:absolute;left:-7px;top:22px;border:7px solid transparent;border-right-color:#fff;border-left:0}
+/* water */
+.drops{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px;margin:6px 0 10px}
+.drop{border:0;background:none;padding:0;width:100%;min-width:0;aspect-ratio:3/4}
+.drop svg{width:100%;height:100%}
+.progress{height:10px;border-radius:999px;background:var(--blush);overflow:hidden}
+.progress>i{display:block;height:100%;background:linear-gradient(90deg,var(--rose-deep),var(--red));border-radius:inherit;transition:width .4s}
+.nudge{background:linear-gradient(135deg,#fff,var(--blush));border:2px dashed var(--rose-deep);border-radius:16px;padding:10px 12px;font-weight:700;color:var(--berry)}
+/* one thing */
+.one{background:linear-gradient(135deg,var(--red),var(--berry));color:#fff}
+.one input{border-color:transparent;background:rgba(255,255,255,.18);color:#fff}
+.one input::placeholder{color:rgba(255,255,255,.75)}
+.one .btn{background:#fff;color:var(--red)}
+.one h2{color:#fff}
+/* nav */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.96);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:6px 6px calc(6px + env(safe-area-inset-bottom));z-index:5}
+nav.tabs .in{max-width:520px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+nav.tabs button{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;font-size:11px;font-weight:700;color:var(--muted);border-radius:14px}
+nav.tabs button svg{width:24px;height:24px}
+nav.tabs button[aria-current=page]{color:var(--red);background:var(--blush)}
+.view{display:none}
+.view.on{display:block}
+/* habits */
+.habit-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.dot{width:12px;height:12px;border-radius:50%;flex:none}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.cal .wd{font-size:11px;text-align:center;color:var(--muted);font-weight:700}
+.day{aspect-ratio:1;border:0;border-radius:10px;background:var(--blush);font-size:12px;font-weight:700;color:var(--muted);padding:0}
+.day.on{color:#fff}
+.day.today{outline:2px solid var(--red);outline-offset:1px}
+.day.future{opacity:.35}
+.day.empty{background:none}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+/* cleaning + timer */
+.task-big{font-family:var(--display);font-size:20px;font-weight:700;margin:6px 0}
+.ring{position:relative;width:220px;height:220px;margin:8px auto}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring .num{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--display);font-size:40px;font-weight:700;font-variant-numeric:tabular-nums}
+.modal{position:fixed;inset:0;background:rgba(74,36,48,.45);display:none;align-items:flex-end;justify-content:center;z-index:10}
+.modal.on{display:flex}
+.sheet{background:#fff;border-radius:28px 28px 0 0;padding:20px 18px calc(22px + env(safe-area-inset-bottom));width:100%;max-width:520px;max-height:92%;overflow:auto}
+/* bear page */
+.bear-big{width:220px;height:220px;margin:0 auto;display:block}
+.lvl{font-family:var(--display);font-size:22px;font-weight:700;text-align:center}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--blush);border-radius:16px;padding:10px;text-align:center}
+.stat b{display:block;font-family:var(--display);font-size:22px;color:var(--red);font-variant-numeric:tabular-nums}
+.unlock{display:flex;gap:8px;flex-wrap:wrap}
+.unlock span{padding:6px 10px;border-radius:12px;background:var(--blush);font-size:13px;font-weight:700}
+.unlock span.lock{opacity:.45}
+.toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:10px 16px;border-radius:999px;font-weight:700;opacity:0;transition:.25s;pointer-events:none;z-index:20;white-space:nowrap}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{border:2px solid var(--line);background:#fff;border-radius:999px;padding:6px 12px;font-weight:700;font-size:14px}
+.seg button[aria-pressed=true]{background:var(--red);border-color:var(--red);color:#fff}
+details summary{cursor:pointer;font-weight:800;color:var(--berry);list-style:none}
+details summary::-webkit-details-marker{display:none}
+.ex{font-size:10px;font-weight:800;color:var(--rose-deep);text-transform:uppercase;margin-left:4px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.happy-bounce{animation:bounce .6s ease 2}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ============ СЕГОДНЯ ============ -->
+<section class="view on" id="v-today">
+  <div class="hello">
+    <div class="bear-mini" id="bearMini"></div>
+    <div class="bubble grow" id="bearSays">Привет! Я рядом.</div>
+  </div>
+
+  <div class="stack">
+    <div class="card">
+      <h2><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#E0314B" stroke-width="2" stroke-linecap="round"><path d="M12 3c3 4 6 7.5 6 11a6 6 0 0 1-12 0c0-3.5 3-7 6-11z"/></svg>Вода <span class="pill" id="waterCount">0 из 8</span></h2>
+      <div class="drops" id="drops"></div>
+      <div class="progress"><i id="waterBar" style="width:0"></i></div>
+      <div class="row" style="margin-top:12px">
+        <button class="btn grow" id="addWater">+ Выпила стакан</button>
+        <button class="btn soft" id="undoWater" aria-label="Отменить последний стакан">−1</button>
+      </div>
+      <p class="nudge" id="waterNudge" hidden style="margin:12px 0 0"></p>
+    </div>
+
+    <div class="card one">
+      <h2><svg class="icon" viewBox="0 0 24 24" fill="#fff"><path d="M12 21s-8-5.2-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.8-8 11-8 11z"/></svg>Главное дело дня</h2>
+      <p class="small" style="margin:0 0 10px;opacity:.9">Одно дело, после которого день засчитан.</p>
+      <div class="row">
+        <input type="text" id="oneThing" placeholder="Например: записаться к врачу" aria-label="Главное дело дня">
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn grow" id="oneDone">Сделала!</button>
+        <button class="btn" id="oneFocus">Таймер</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#E0314B" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h7"/></svg>Выгрузить из головы</h2>
+      <p class="small muted" style="margin:0 0 8px">Записывай всё, что крутится в голове. Разберём потом.</p>
+      <form class="row" id="dumpForm">
+        <input type="text" id="dumpIn" placeholder="Купить корм, позвонить в банк…" aria-label="Мысль">
+        <button class="btn" type="submit" aria-label="Добавить">+</button>
+      </form>
+      <ul class="list" id="dumpList" style="margin-top:10px"></ul>
+    </div>
+
+    <div class="card">
+      <h2><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#E0314B" stroke-width="2" stroke-linecap="round"><rect x="3" y="9" width="18" height="7" rx="3.5"/><path d="M12 9v7"/></svg>Лекарства и витамины</h2>
+      <ul class="list" id="medsList"></ul>
+      <details style="margin-top:10px"><summary>+ Добавить</summary>
+        <form class="row" id="medForm" style="margin-top:8px">
+          <input type="text" id="medName" placeholder="Название" aria-label="Название лекарства">
+          <input type="time" id="medTime" value="09:00" style="width:120px" aria-label="Время">
+          <button class="btn" type="submit">Ок</button>
+        </form>
+      </details>
+    </div>
+
+    <div class="card">
+      <h2><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#E0314B" stroke-width="2" stroke-linecap="round"><path d="M5 12l4 4 10-10"/></svg>Дела на сегодня</h2>
+      <ul class="list" id="todayList"></ul>
+      <form class="row" id="taskForm" style="margin-top:10px">
+        <input type="text" id="taskIn" placeholder="Маленькое дело" aria-label="Новое дело">
+        <button class="btn" type="submit" aria-label="Добавить дело">+</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ПЛАНЫ ============ -->
+<section class="view" id="v-plans">
+  <h1 style="margin-bottom:14px">Планы</h1>
+  <div class="stack">
+    <div class="card">
+      <h2><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#E0314B" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Записи и события</h2>
+      <ul class="list" id="planList"></ul>
+      <details style="margin-top:10px"><summary>+ Новое событие</summary>
+        <form class="stack" id="planForm" style="margin-top:10px;gap:10px">
+          <div class="seg" id="planCat" role="group" aria-label="Тип события"></div>
+          <input type="text" id="planTitle" placeholder="Что именно (стоматолог, «Лебединое озеро»…)" aria-label="Название">
+          <div class="row"><input type="date" id="planDate" aria-label="Дата"><input type="time" id="planTime" aria-label="Время" value="12:00"></div>
+          <input type="text" id="planWhere" placeholder="Где (необязательно)" aria-label="Место">
+          <button class="btn wide" type="submit">Сохранить</button>
+        </form>
+      </details>
+    </div>
+
+    <div class="card">
+      <h2><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#E0314B" stroke-width="2" stroke-linejoin="round"><path d="M4 5h16v11H8l-4 4z"/></svg>Написать людям</h2>
+      <ul class="list" id="msgList"></ul>
+      <details style="margin-top:10px"><summary>+ Не забыть написать</summary>
+        <form class="stack" id="msgForm" style="margin-top:10px;gap:10px">
+          <input type="text" id="msgWho" placeholder="Кому" aria-label="Кому">
+          <input type="text" id="msgWhat" placeholder="О чём (ответить про подарки…)" aria-label="О чём">
+          <input type="date" id="msgDate" aria-label="Когда">
+          <button class="btn wide" type="submit">Сохранить</button>
+        </form>
+      </details>
+    </div>
+
+    <div class="card">
+      <h2><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#E0314B" stroke-width="2" stroke-linecap="round"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M4 15h16M12 11V7M12 7c-1.5 0-2-2 0-4 2 2 1.5 4 0 4z"/></svg>Дни рождения</h2>
+      <ul class="list" id="bdList"></ul>
+      <details style="margin-top:10px"><summary>+ Добавить</summary>
+        <form class="stack" id="bdForm" style="margin-top:10px;gap:10px">
+          <input type="text" id="bdName" placeholder="Имя" aria-label="Имя">
+          <div class="row">
+            <select id="bdDay" aria-label="День"></select>
+            <select id="bdMonth" aria-label="Месяц"></select>
+          </div>
+          <select id="bdWho" aria-label="Кто это">
+            <option value="friend">Подруга / друг</option><option value="mom">Мама / папа</option><option value="love">Любимый человек</option><option value="work">Коллега</option><option value="family">Родственник</option>
+          </select>
+          <input type="text" id="bdNote" placeholder="Что любит (подсказка для подарка)" aria-label="Заметка">
+          <button class="btn wide" type="submit">Сохранить</button>
+        </form>
+      </details>
+    </div>
+
+    <div class="card">
+      <h2><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#E0314B" stroke-width="2" stroke-linecap="round"><path d="M12 3v3M5 8l2 2M19 8l-2 2M6 14h12l-1 7H7z"/></svg>Напоминания на телефон</h2>
+      <p class="small muted" style="margin:0 0 10px">Скачай файл и открой его: вода каждые 2 часа, лекарства, события (за день и за 2 часа), дни рождения (за неделю и утром) встанут в календарь телефона и будут звенеть сами.</p>
+      <button class="btn wide" id="icsBtn">Скачать напоминания (.ics)</button>
+      <p class="small muted" id="icsNote" style="margin:8px 0 0"></p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ПРИВЫЧКИ ============ -->
+<section class="view" id="v-habits">
+  <div class="row" style="margin-bottom:6px"><h1 class="grow">Привычки</h1></div>
+  <p class="small muted" style="margin:0 0 14px">Пропустила день? Ничего страшного. Считаются все отмеченные дни, а не только серия.</p>
+  <div class="card" style="margin-bottom:14px">
+    <h2>Эта неделя</h2>
+    <div id="weekGrid" class="stack" style="gap:10px"></div>
+  </div>
+  <div class="stack" id="habitCals"></div>
+  <details class="card" style="margin-top:14px"><summary>+ Новая привычка</summary>
+    <form class="stack" id="habitForm" style="margin-top:10px;gap:10px">
+      <input type="text" id="habitName" placeholder="Например: зарядка 5 минут" aria-label="Привычка">
+      <div class="seg" id="habitColors" role="group" aria-label="Цвет"></div>
+      <button class="btn wide" type="submit">Добавить</button>
+    </form>
+  </details>
+</section>
+
+<!-- ============ ДОМ ============ -->
+<section class="view" id="v-home">
+  <h1 style="margin-bottom:6px">Уборка по чуть-чуть</h1>
+  <p class="small muted" style="margin:0 0 14px">Одно маленькое дело на 5–10 минут. Не нужно убирать всё.</p>
+  <div class="stack">
+    <div class="card" style="text-align:center">
+      <div class="seg" id="zoneSeg" role="group" aria-label="Зона" style="justify-content:center"></div>
+      <p class="tag" id="cleanZone" style="margin:14px 0 0">&nbsp;</p>
+      <p class="task-big" id="cleanTask">Нажми кнопку, и я выберу одно дело</p>
+      <p class="muted small" id="cleanMin">&nbsp;</p>
+      <div class="row" style="margin-top:8px">
+        <button class="btn soft grow" id="cleanPick">Другое дело</button>
+        <button class="btn grow" id="cleanStart">Начать</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Сегодня убрала</h2>
+      <ul class="list" id="cleanDoneList"></ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ МИШКА ============ -->
+<section class="view" id="v-bear">
+  <div class="card" style="text-align:center">
+    <div id="bearBig"></div>
+    <p class="lvl" id="lvlText">Уровень 1</p>
+    <div class="progress" style="margin:10px 0 4px"><i id="lvlBar"></i></div>
+    <p class="small muted" id="lvlHint" style="margin:0"></p>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <h2>Сегодня</h2>
+    <div class="stats">
+      <div class="stat"><b id="stWater">0</b><span class="small">стаканов</span></div>
+      <div class="stat"><b id="stDone">0</b><span class="small">дел</span></div>
+      <div class="stat"><b id="stDays">0</b><span class="small">дней со мной</span></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <h2>Подарки для мишки</h2>
+    <div class="unlock" id="unlocks"></div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <h2>За что очки</h2>
+    <p class="small" style="margin:0">Стакан воды +5 · лекарство +10 · дело +10 · главное дело дня +30 · уборка +20 · привычка +10 · написала человеку +10</p>
+  </div>
+</section>
+</div>
+
+<nav class="tabs" aria-label="Разделы"><div class="in">
+  <button data-v="today" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 21s-8-5.2-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.8-8 11-8 11z"/></svg>Сегодня</button>
+  <button data-v="plans"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Планы</button>
+  <button data-v="habits"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="4" width="6" height="6" rx="2"/><rect x="14" y="4" width="6" height="6" rx="2"/><rect x="4" y="14" width="6" height="6" rx="2"/><path d="M15 17l2 2 3-4"/></svg>Привычки</button>
+  <button data-v="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-7 8 7v9H4z"/><path d="M10 20v-5h4v5"/></svg>Дом</button>
+  <button data-v="bear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="12" cy="13" r="8"/></svg>Мишка</button>
+</div></nav>
+
+<div class="modal" id="timerModal" role="dialog" aria-modal="true" aria-labelledby="timerTitle">
+  <div class="sheet" style="text-align:center">
+    <p class="tag" id="timerTag">Таймер</p>
+    <h2 id="timerTitle" style="margin:4px 0 0"></h2>
+    <div class="ring"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" fill="none" stroke="#FDEFF3" stroke-width="12"/><circle id="ringArc" cx="60" cy="60" r="52" fill="none" stroke="#E0314B" stroke-width="12" stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="0"/></svg><div class="num" id="timerNum">10:00</div></div>
+    <div class="seg" id="timerLen" style="justify-content:center;margin-bottom:12px"></div>
+    <div class="row">
+      <button class="btn soft grow" id="timerPause">Пауза</button>
+      <button class="btn soft" id="timerPlus">+5 мин</button>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button class="btn ghost grow" id="timerClose">Закрыть</button>
+      <button class="btn grow" id="timerDone">Готово!</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+"use strict";
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s);
+const pad=n=>String(n).padStart(2,"0");
+const keyOf=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const todayKey=()=>keyOf(new Date());
+const uid=()=>Math.random().toString(36).slice(2,9);
+const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const MONTHS=["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"];
+const MONTHS_N=["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
+const WD=["Пн","Вт","Ср","Чт","Пт","Сб","Вс"];
+const CHECK='<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4 10-10"/></svg>';
+function plural(n,a,b,c){n=Math.abs(n)%100;const m=n%10;if(n>10&&n<20)return c;if(m>1&&m<5)return b;if(m===1)return a;return c}
+function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x}
+
+/* ---------- state ---------- */
+const LS="mishka-state-v1";
+function seed(){
+  const t=new Date();
+  return {
+    v:1,updatedAt:0,firstDay:todayKey(),points:0,
+    water:{goal:8,every:2,log:{},lastAt:0},
+    meds:[{id:uid(),name:"Витамин D",time:"09:00",ex:true}],medsDone:{},
+    tasks:{[todayKey()]:[{id:uid(),text:"Ответить на одно письмо",done:false,ex:true}]},
+    one:{},
+    dump:[{id:uid(),text:"Купить фильтр для воды",ex:true}],
+    plans:[{id:uid(),cat:"doctor",title:"Стоматолог, профосмотр",date:keyOf(addDays(t,5)),time:"11:30",where:"",done:false,ex:true}],
+    msgs:[{id:uid(),who:"Подруга",what:"спросить, как прошло собеседование",date:keyOf(addDays(t,1)),done:false,ex:true}],
+    bdays:[{id:uid(),name:"Мама",d:12,m:3,who:"mom",note:"любит пионы и чай с чабрецом",ex:true}],
+    habits:[{id:uid(),name:"Выпить стакан воды утром",color:"#E0314B",days:{}},{id:uid(),name:"Зарядка 5 минут",color:"#EE9DB0",days:{}}],
+    clean:{},zone:"all"
+  };
+}
+let S;
+try{S=JSON.parse(localStorage.getItem(LS)||"null")}catch(e){S=null}
+if(!S||!S.v)S=seed();
+
+let saveTimer=null,db=null,docRef=null,writing=false,pending=false;
+function save(){
+  S.updatedAt=Date.now();
+  try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}
+  clearTimeout(saveTimer);saveTimer=setTimeout(pushRemote,1500);
+  syncNative();
+}
+/* в Android-приложении напоминания ставит сам телефон */
+function buildReminders(){
+  const R=[],tk=todayKey();
+  for(let h=10;h<=20;h+=S.water.every)R.push({id:"water"+h,kind:"daily",time:pad(h)+":00",title:"Стакан воды",text:"Мишка просит попить водички"});
+  S.meds.forEach(m=>R.push({id:"med"+m.id,kind:"daily",time:m.time,title:"Лекарство: "+m.name,text:"Не забудь принять и отметить в приложении"}));
+  S.plans.filter(p=>!p.done&&p.date>=tk).forEach(p=>{
+    const t=p.time||"09:00",title=CATS[p.cat]+": "+p.title;
+    const prev=keyOf(addDays(new Date(p.date+"T00:00"),-1));
+    R.push({id:"planD"+p.id,kind:"once",date:prev,time:t,title:"Завтра. "+title,text:(p.where?p.where+", ":"")+"в "+t});
+    const [hh,mm]=t.split(":").map(Number);const d2=new Date(p.date+"T00:00");d2.setHours(hh-2,mm);
+    R.push({id:"planH"+p.id,kind:"once",date:keyOf(d2),time:pad(d2.getHours())+":"+pad(d2.getMinutes()),title:"Через 2 часа. "+title,text:p.where||"Пора собираться"});
+  });
+  S.msgs.filter(m=>!m.done&&m.date).forEach(m=>R.push({id:"msg"+m.id,kind:"once",date:m.date<tk?tk:m.date,time:"12:00",title:"Написать: "+m.who,text:m.what||""}));
+  S.bdays.forEach(b=>{
+    R.push({id:"bdW"+b.id,kind:"yearly",m:b.m,d:b.d,offset:-7,time:"10:00",title:"Через неделю ДР: "+b.name,text:b.note?"Любит: "+b.note:"Пора подумать о подарке"});
+    R.push({id:"bdD"+b.id,kind:"yearly",m:b.m,d:b.d,offset:0,time:"09:00",title:"Сегодня ДР: "+b.name,text:"Открой мишку: там готовое поздравление"});
+  });
+  return R;
+}
+function syncNative(){try{if(window.Android&&window.Android.setReminders)window.Android.setReminders(JSON.stringify(buildReminders()))}catch(e){}}
+async function pushRemote(){
+  if(!docRef)return;
+  if(writing){pending=true;return}
+  writing=true;
+  try{await docRef.set(JSON.parse(JSON.stringify(S)))}catch(e){}
+  writing=false;
+  if(pending){pending=false;pushRemote()}
+}
+(async function connect(){
+  try{
+    if(!window.claude||!window.claude.use)return;
+    const [d,u]=await Promise.all([window.claude.use("db"),window.claude.use("user")]);
+    if(!d||!u)return;
+    const id=await u.id();if(!id)return;
+    db=d;docRef=db.doc("data/users/"+id+"/state");
+    const snap=await docRef.get();
+    const remote=snap&&snap.exists?snap.data():null;
+    if(remote&&remote.v&&(remote.updatedAt||0)>(S.updatedAt||0)){
+      S=JSON.parse(JSON.stringify(remote));
+      try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}
+      renderAll();
+    }else{pushRemote()}
+  }catch(e){docRef=null}
+})();
+
+/* ---------- points & bear ---------- */
+function addPoints(n,msg){
+  const before=level();
+  S.points=Math.max(0,(S.points||0)+n);save();
+  if(n>0)toast("+"+n+" · "+msg);
+  if(level()>before){setTimeout(()=>toast("Новый уровень! Мишка получил подарок"),1300)}
+  renderBear();
+}
+const level=()=>Math.floor((S.points||0)/100)+1;
+const UNLOCKS=[[2,"Красный бантик"],[3,"Шарфик с сердечком"],[4,"Румяные щёчки"],[5,"Корона"],[7,"Звёздочки вокруг"]];
+
+function waterToday(){return S.water.log[todayKey()]||0}
+function mood(){
+  const h=new Date().getHours();
+  const since=S.water.lastAt?(Date.now()-S.water.lastAt)/36e5:99;
+  if(h>=10&&h<22&&since>=S.water.every&&waterToday()<S.water.goal)return"thirsty";
+  if(h>=23||h<6)return"sleepy";
+  return doneToday()>=3||waterToday()>=S.water.goal?"happy":"calm";
+}
+function bearSVG(m,lv){
+  const fur="#F4B9C4",dark="#D98A9C",inner="#FBE3E8";
+  let eyes,mouth="";
+  if(m==="happy"){eyes='<path d="M70 92q8-9 16 0M114 92q8-9 16 0" stroke="#4A2430" stroke-width="5" fill="none" stroke-linecap="round"/>';mouth='<path d="M88 118q12 12 24 0" stroke="#4A2430" stroke-width="5" fill="#E0314B" stroke-linecap="round"/>'}
+  else if(m==="sleepy"){eyes='<path d="M70 94h16M114 94h16" stroke="#4A2430" stroke-width="5" stroke-linecap="round"/>';mouth='<circle cx="100" cy="120" r="5" fill="#4A2430"/>'}
+  else if(m==="thirsty"){eyes='<circle cx="78" cy="92" r="7" fill="#4A2430"/><circle cx="122" cy="92" r="7" fill="#4A2430"/><circle cx="80" cy="90" r="2" fill="#fff"/><circle cx="124" cy="90" r="2" fill="#fff"/>';mouth='<path d="M90 122q10-6 20 0" stroke="#4A2430" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M150 70c4 6 6 9 6 12a6 6 0 0 1-12 0c0-3 2-6 6-12z" fill="#9AD0F5"/>'}
+  else{eyes='<circle cx="78" cy="92" r="7" fill="#4A2430"/><circle cx="122" cy="92" r="7" fill="#4A2430"/><circle cx="80" cy="90" r="2" fill="#fff"/><circle cx="124" cy="90" r="2" fill="#fff"/>';mouth='<path d="M90 116q10 8 20 0" stroke="#4A2430" stroke-width="5" fill="none" stroke-linecap="round"/>'}
+  let acc="";
+  if(lv>=7)acc+='<g fill="#E0314B"><path d="M24 40l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"/><path d="M176 110l2 5 5 2-5 2-2 5-2-5-5-2 5-2z"/><path d="M30 150l2 4 4 2-4 2-2 4-2-4-4-2 4-2z"/></g>';
+  if(lv>=4||m==="happy")acc+='<ellipse cx="64" cy="110" rx="10" ry="6" fill="#F07D93" opacity=".6"/><ellipse cx="136" cy="110" rx="10" ry="6" fill="#F07D93" opacity=".6"/>';
+  if(lv>=3)acc+='<path d="M52 150q48 22 96 0l-4 14q-44 18-88 0z" fill="#E0314B"/><path d="M100 160c-3-4-9-3-9 2 0 4 9 9 9 9s9-5 9-9c0-5-6-6-9-2z" fill="#fff"/>';
+  if(lv>=2)acc+='<g transform="translate(150 34) rotate(18)"><path d="M0 0l-16-10v20zM0 0l16-10v20z" fill="#E0314B"/><circle r="5" fill="#A61E38"/></g>';
+  if(lv>=5)acc+='<path d="M76 28l8 16 16-14 16 14 8-16v22H76z" fill="#F5C543" stroke="#D9A21B" stroke-width="2" stroke-linejoin="round"/>';
+  return '<svg viewBox="0 0 200 190" role="img" aria-label="Мишка"><circle cx="50" cy="50" r="24" fill="'+fur+'"/><circle cx="150" cy="50" r="24" fill="'+fur+'"/><circle cx="50" cy="50" r="12" fill="'+inner+'"/><circle cx="150" cy="50" r="12" fill="'+inner+'"/><ellipse cx="100" cy="102" rx="70" ry="64" fill="'+fur+'"/><ellipse cx="100" cy="116" rx="26" ry="20" fill="'+inner+'"/><ellipse cx="100" cy="106" rx="9" ry="6" fill="'+dark+'"/>'+eyes+mouth+acc+'</svg>';
+}
+const SAYS={
+  thirsty:["Ой, я пересох! Давай по стаканчику воды?","Уже давно не пили водичку. Вместе?","Глоточек воды, и я снова улыбаюсь!"],
+  sleepy:["Уже поздно. Отдыхать тоже важно.","Завтра продолжим, а сейчас баиньки."],
+  happy:["Ты сегодня супер! Я горжусь тобой.","Сколько сделано! Обнимаю.","Вот это день!"],
+  calm:["Одно маленькое дело, и уже победа.","Я рядом. С чего начнём?","Не обязательно всё сразу. Давай по шагу."]
+};
+function renderBear(){
+  const m=mood(),lv=level();
+  $("#bearMini").innerHTML=bearSVG(m,lv);
+  $("#bearBig").innerHTML='<div class="bear-big">'+bearSVG(m,lv)+'</div>';
+  const arr=SAYS[m];let say=arr[new Date().getMinutes()%arr.length];
+  const bd=upcomingBdays().find(b=>b.days<=7);
+  if(m!=="thirsty"&&bd)say=bd.days===0?"Сегодня день рождения у "+bd.name+"! Поздравим?":"Через "+bd.days+" "+plural(bd.days,"день","дня","дней")+" день рождения у "+bd.name+". Пора про подарок.";
+  const planT=S.plans.filter(p=>!p.done&&p.date===todayKey())[0];
+  if(m!=="thirsty"&&planT)say="Сегодня: "+planT.title+(planT.time?" в "+planT.time:"")+". Не забудь!";
+  $("#bearSays").textContent=say;
+  $("#lvlText").textContent="Уровень "+lv;
+  const p=(S.points||0)%100;$("#lvlBar").style.width=p+"%";
+  $("#lvlHint").textContent="До следующего подарка: "+(100-p)+" "+plural(100-p,"очко","очка","очков");
+  $("#unlocks").innerHTML=UNLOCKS.map(([l,n])=>'<span class="'+(lv>=l?"":"lock")+'">'+(lv>=l?"":"ур. "+l+" · ")+esc(n)+'</span>').join("");
+  $("#stWater").textContent=waterToday();
+  $("#stDone").textContent=doneToday();
+  const days=Math.round((new Date(todayKey())-new Date(S.firstDay))/864e5)+1;
+  $("#stDays").textContent=days;
+}
+function cheer(){const el=$("#bearMini");el.classList.remove("happy-bounce");void el.offsetWidth;el.classList.add("happy-bounce")}
+function doneToday(){
+  const k=todayKey();
+  return (S.tasks[k]||[]).filter(t=>t.done).length+((S.medsDone[k]||[]).length)+((S.clean[k]||[]).length)+(S.one[k]&&S.one[k].done?1:0)+S.habits.filter(h=>h.days[k]).length;
+}
+
+/* ---------- toast ---------- */
+let tt;function toast(t){const el=$("#toast");el.textContent=t;el.classList.add("on");clearTimeout(tt);tt=setTimeout(()=>el.classList.remove("on"),1800)}
+
+/* ---------- water ---------- */
+const DROP=(f)=>'<svg viewBox="0 0 30 40"><path d="M15 3c6 9 12 15 12 22a12 12 0 0 1-24 0C3 18 9 12 15 3z" fill="'+(f?"#E0314B":"#FDEFF3")+'" stroke="'+(f?"#E0314B":"#EE9DB0")+'" stroke-width="2"/>'+(f?'<path d="M10 24a5 5 0 0 0 4 6" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" opacity=".7"/>':"")+'</svg>';
+function renderWater(){
+  const n=waterToday(),g=S.water.goal;
+  $("#drops").innerHTML=Array.from({length:g},(_,i)=>'<button class="drop" data-i="'+i+'" aria-label="Стакан '+(i+1)+'">'+DROP(i<n)+'</button>').join("");
+  $("#waterCount").textContent=n+" из "+g;
+  $("#waterBar").style.width=Math.min(100,n/g*100)+"%";
+  const since=S.water.lastAt?(Date.now()-S.water.lastAt)/36e5:null;
+  const nd=$("#waterNudge");
+  if(n>=g){nd.hidden=false;nd.textContent="Норма на сегодня выполнена. Мишка доволен!"}
+  else if(since===null||since>=S.water.every){nd.hidden=false;nd.textContent=since===null?"Начнём день со стакана воды?":"Прошло больше "+S.water.every+" часов. Время для стаканчика!"}
+  else{const left=Math.max(1,Math.round((S.water.every-since)*60));nd.hidden=false;nd.textContent="Следующий стакан примерно через "+(left>=60?Math.round(left/60)+" ч":left+" мин")}
+}
+function drink(){const k=todayKey();S.water.log[k]=(S.water.log[k]||0)+1;S.water.lastAt=Date.now();addPoints(5,"вода");cheer();renderWater();renderBear()}
+$("#addWater").onclick=drink;
+$("#drops").onclick=e=>{const b=e.target.closest(".drop");if(!b)return;const i=+b.dataset.i;if(i>=waterToday())drink()};
+$("#undoWater").onclick=()=>{const k=todayKey();if(!S.water.log[k])return;S.water.log[k]--;S.points=Math.max(0,S.points-5);save();renderWater();renderBear()};
+
+/* ---------- one thing ---------- */
+function renderOne(){const o=S.one[todayKey()]||{text:"",done:false};$("#oneThing").value=o.text;$("#oneDone").textContent=o.done?"Сделано ✓":"Сделала!";$("#oneDone").disabled=o.done}
+$("#oneThing").addEventListener("change",e=>{const k=todayKey();S.one[k]=Object.assign({done:false},S.one[k],{text:e.target.value.trim()});save()});
+$("#oneDone").onclick=()=>{const k=todayKey();S.one[k]=S.one[k]||{text:$("#oneThing").value.trim()};if(S.one[k].done)return;S.one[k].done=true;addPoints(30,"главное дело дня");cheer();renderOne()};
+$("#oneFocus").onclick=()=>openTimer($("#oneThing").value.trim()||"Главное дело дня","Фокус",25,null);
+
+/* ---------- brain dump ---------- */
+function renderDump(){
+  $("#dumpList").innerHTML=S.dump.length?S.dump.map(d=>'<li class="item"><span class="t">'+esc(d.text)+(d.ex?'<span class="ex">пример</span>':"")+'</span><button class="btn soft" style="padding:6px 10px" data-act="today" data-id="'+d.id+'">в дела</button><button class="x" data-act="del" data-id="'+d.id+'" aria-label="Удалить">×</button></li>').join(""):'<li class="small muted">Голова свободна.</li>';
+}
+$("#dumpForm").onsubmit=e=>{e.preventDefault();const v=$("#dumpIn").value.trim();if(!v)return;S.dump.unshift({id:uid(),text:v});$("#dumpIn").value="";save();renderDump();toast("Записала. Можно отпустить")};
+$("#dumpList").onclick=e=>{const b=e.target.closest("button");if(!b)return;const i=S.dump.findIndex(d=>d.id===b.dataset.id);if(i<0)return;const d=S.dump.splice(i,1)[0];if(b.dataset.act==="today"){const k=todayKey();(S.tasks[k]=S.tasks[k]||[]).push({id:uid(),text:d.text,done:false})}save();renderDump();renderTasks()};
+
+/* ---------- meds ---------- */
+function renderMeds(){
+  const k=todayKey(),done=S.medsDone[k]||[];
+  const meds=[...S.meds].sort((a,b)=>a.time.localeCompare(b.time));
+  $("#medsList").innerHTML=meds.length?meds.map(m=>{const on=done.includes(m.id);return '<li class="item'+(on?" done":"")+'"><button class="check'+(on?" on":"")+'" data-id="'+m.id+'" aria-label="Отметить '+esc(m.name)+'">'+CHECK+'</button><span class="t">'+esc(m.name)+(m.ex?'<span class="ex">пример</span>':"")+' <span class="muted small">'+m.time+'</span></span><button class="x" data-del="'+m.id+'" aria-label="Удалить">×</button></li>'}).join(""):'<li class="small muted">Пока пусто.</li>';
+}
+$("#medsList").onclick=e=>{
+  const del=e.target.closest("[data-del]");if(del){S.meds=S.meds.filter(m=>m.id!==del.dataset.del);save();renderMeds();return}
+  const b=e.target.closest(".check");if(!b)return;const k=todayKey();const arr=S.medsDone[k]=S.medsDone[k]||[];
+  const i=arr.indexOf(b.dataset.id);if(i<0){arr.push(b.dataset.id);addPoints(10,"лекарство");cheer()}else{arr.splice(i,1);S.points=Math.max(0,S.points-10);save()}renderMeds();renderBear()};
+$("#medForm").onsubmit=e=>{e.preventDefault();const n=$("#medName").value.trim();if(!n)return;S.meds.push({id:uid(),name:n,time:$("#medTime").value||"09:00"});$("#medName").value="";save();renderMeds()};
+
+/* ---------- tasks ---------- */
+function renderTasks(){
+  const k=todayKey(),list=S.tasks[k]||[];
+  const extra=[];
+  S.plans.filter(p=>!p.done&&p.date===k).forEach(p=>extra.push('<li class="item"><span class="pill red">'+(p.time||"сегодня")+'</span><span class="t">'+esc(p.title)+'</span></li>'));
+  S.msgs.filter(m=>!m.done&&m.date&&m.date<=k).forEach(m=>extra.push('<li class="item"><span class="pill">написать</span><span class="t">'+esc(m.who)+': '+esc(m.what)+'</span></li>'));
+  $("#todayList").innerHTML=extra.join("")+(list.length?list.map(t=>'<li class="item'+(t.done?" done":"")+'"><button class="check'+(t.done?" on":"")+'" data-id="'+t.id+'" aria-label="Готово">'+CHECK+'</button><span class="t">'+esc(t.text)+(t.ex?'<span class="ex">пример</span>':"")+'</span><button class="btn ghost small" data-timer="'+t.id+'" aria-label="Таймер">таймер</button><button class="x" data-del="'+t.id+'" aria-label="Удалить">×</button></li>').join(""):(extra.length?"":'<li class="small muted">Добавь одно маленькое дело.</li>'));
+}
+$("#taskForm").onsubmit=e=>{e.preventDefault();const v=$("#taskIn").value.trim();if(!v)return;const k=todayKey();(S.tasks[k]=S.tasks[k]||[]).push({id:uid(),text:v,done:false});$("#taskIn").value="";save();renderTasks()};
+$("#todayList").onclick=e=>{
+  const k=todayKey(),list=S.tasks[k]||[];
+  const del=e.target.closest("[data-del]");if(del){S.tasks[k]=list.filter(t=>t.id!==del.dataset.del);save();renderTasks();return}
+  const tm=e.target.closest("[data-timer]");if(tm){const t=list.find(x=>x.id===tm.dataset.timer);if(t)openTimer(t.text,"Фокус",15,()=>{if(!t.done){t.done=true;addPoints(10,"дело");renderTasks()}});return}
+  const b=e.target.closest(".check");if(!b)return;const t=list.find(x=>x.id===b.dataset.id);if(!t)return;
+  t.done=!t.done;if(t.done){addPoints(10,"дело");cheer()}else{S.points=Math.max(0,S.points-10);save()}renderTasks();renderBear()};
+
+/* ---------- plans ---------- */
+const CATS={doctor:"Врач",theatre:"Театр",pool:"Бассейн",meet:"Встреча",other:"Другое"};
+let planCat="doctor";
+$("#planCat").innerHTML=Object.entries(CATS).map(([k,v])=>'<button type="button" data-c="'+k+'" aria-pressed="'+(k===planCat)+'">'+v+'</button>').join("");
+$("#planCat").onclick=e=>{const b=e.target.closest("button");if(!b)return;planCat=b.dataset.c;[...$("#planCat").children].forEach(x=>x.setAttribute("aria-pressed",x===b))};
+$("#planDate").value=todayKey();$("#msgDate").value=todayKey();
+function niceDate(k){const[y,m,d]=k.split("-").map(Number);const diff=Math.round((new Date(y,m-1,d)-new Date(todayKey()))/864e5);if(diff===0)return"сегодня";if(diff===1)return"завтра";if(diff===-1)return"вчера";return d+" "+MONTHS[m-1]}
+function renderPlans(){
+  const items=[...S.plans].sort((a,b)=>(a.done-b.done)||(a.date+a.time).localeCompare(b.date+b.time));
+  $("#planList").innerHTML=items.length?items.map(p=>'<li class="item'+(p.done?" done":"")+'"><button class="check'+(p.done?" on":"")+'" data-id="'+p.id+'" aria-label="Готово">'+CHECK+'</button><span class="t"><span class="tag">'+CATS[p.cat]+'</span><br>'+esc(p.title)+(p.ex?'<span class="ex">пример</span>':"")+'<br><span class="small muted">'+niceDate(p.date)+(p.time?", "+p.time:"")+(p.where?" · "+esc(p.where):"")+'</span></span><button class="x" data-del="'+p.id+'" aria-label="Удалить">×</button></li>').join(""):'<li class="small muted">Пока нет событий.</li>';
+  const ms=[...S.msgs].sort((a,b)=>(a.done-b.done)||(a.date||"").localeCompare(b.date||""));
+  $("#msgList").innerHTML=ms.length?ms.map(m=>'<li class="item'+(m.done?" done":"")+'"><button class="check'+(m.done?" on":"")+'" data-id="'+m.id+'" aria-label="Написала">'+CHECK+'</button><span class="t"><b>'+esc(m.who)+'</b>'+(m.ex?'<span class="ex">пример</span>':"")+'<br><span class="small">'+esc(m.what)+'</span><br><span class="small muted">'+(m.date?niceDate(m.date):"")+'</span></span><button class="x" data-del="'+m.id+'" aria-label="Удалить">×</button></li>').join(""):'<li class="small muted">Никому не должна.</li>';
+}
+$("#planForm").onsubmit=e=>{e.preventDefault();const t=$("#planTitle").value.trim()||CATS[planCat];S.plans.push({id:uid(),cat:planCat,title:t,date:$("#planDate").value||todayKey(),time:$("#planTime").value,where:$("#planWhere").value.trim(),done:false});$("#planTitle").value="";$("#planWhere").value="";save();renderPlans();renderTasks();toast("Записала в планы")};
+$("#planList").onclick=e=>{const d=e.target.closest("[data-del]");if(d){S.plans=S.plans.filter(p=>p.id!==d.dataset.del);save();renderPlans();return}const b=e.target.closest(".check");if(!b)return;const p=S.plans.find(x=>x.id===b.dataset.id);p.done=!p.done;if(p.done)addPoints(10,"событие");else save();renderPlans();renderTasks()};
+$("#msgForm").onsubmit=e=>{e.preventDefault();const w=$("#msgWho").value.trim();if(!w)return;S.msgs.push({id:uid(),who:w,what:$("#msgWhat").value.trim(),date:$("#msgDate").value,done:false});$("#msgWho").value="";$("#msgWhat").value="";save();renderPlans();renderTasks()};
+$("#msgList").onclick=e=>{const d=e.target.closest("[data-del]");if(d){S.msgs=S.msgs.filter(p=>p.id!==d.dataset.del);save();renderPlans();return}const b=e.target.closest(".check");if(!b)return;const m=S.msgs.find(x=>x.id===b.dataset.id);m.done=!m.done;if(m.done)addPoints(10,"написала человеку");else save();renderPlans();renderTasks()};
+
+/* ---------- birthdays ---------- */
+$("#bdDay").innerHTML=Array.from({length:31},(_,i)=>'<option value="'+(i+1)+'">'+(i+1)+'</option>').join("");
+$("#bdMonth").innerHTML=MONTHS_N.map((m,i)=>'<option value="'+(i+1)+'">'+m+'</option>').join("");
+function upcomingBdays(){
+  const t=new Date(todayKey());
+  return S.bdays.map(b=>{let n=new Date(t.getFullYear(),b.m-1,b.d);if(n<t)n=new Date(t.getFullYear()+1,b.m-1,b.d);return Object.assign({},b,{days:Math.round((n-t)/864e5)})}).sort((a,b)=>a.days-b.days);
+}
+const WISH={
+  friend:["{n}, с днём рождения! Ты мой человек: с тобой и смешно, и спокойно. Пусть этот год будет лёгким, ярким и полным поводов для радости. Обнимаю крепко!","{n}, с днюшкой! Желаю, чтобы всё задуманное получалось без лишних усилий, а рядом были только свои люди. Люблю тебя!"],
+  mom:["Мамочка, с днём рождения! Спасибо тебе за заботу, тепло и за то, что ты всегда рядом. Пусть здоровье будет крепким, а поводов улыбаться становится больше. Люблю тебя!","{n}, с днём рождения! Ты самый родной человек. Желаю тебе отдыха, спокойствия и радости каждый день."],
+  love:["{n}, с днём рождения, любимый человек! С тобой каждый день теплее. Пусть сбываются мечты, а я буду рядом и помогу. Люблю!"],
+  work:["{n}, с днём рождения! Желаю интересных задач, лёгких дедлайнов и много поводов для гордости. Пусть год будет успешным и спокойным!"],
+  family:["{n}, с днём рождения! Желаю здоровья, тепла и уюта в доме. Пусть рядом будут любимые люди, а год принесёт много хорошего."]
+};
+let wishIdx=0;
+function renderBdays(){
+  const up=upcomingBdays();
+  $("#bdList").innerHTML=up.length?up.map(b=>'<li class="item" style="flex-wrap:wrap"><span class="pill'+(b.days<=7?" red":"")+'">'+(b.days===0?"сегодня":b.days===1?"завтра":"через "+b.days+" "+plural(b.days,"день","дня","дней"))+'</span><span class="t"><b>'+esc(b.name)+'</b>'+(b.ex?'<span class="ex">пример</span>':"")+' <span class="small muted">'+b.d+" "+MONTHS[b.m-1]+'</span>'+(b.note?'<br><span class="small">Любит: '+esc(b.note)+'</span>':"")+'</span><button class="btn soft" style="padding:6px 10px" data-wish="'+b.id+'">поздравление</button><button class="x" data-del="'+b.id+'" aria-label="Удалить">×</button><div class="small" data-wbox="'+b.id+'" style="flex-basis:100%"></div></li>').join(""):'<li class="small muted">Добавь близких, я напомню.</li>';
+}
+$("#bdForm").onsubmit=e=>{e.preventDefault();const n=$("#bdName").value.trim();if(!n)return;S.bdays.push({id:uid(),name:n,d:+$("#bdDay").value,m:+$("#bdMonth").value,who:$("#bdWho").value,note:$("#bdNote").value.trim()});$("#bdName").value="";$("#bdNote").value="";save();renderBdays();renderBear()};
+$("#bdList").onclick=async e=>{
+  const d=e.target.closest("[data-del]");if(d){S.bdays=S.bdays.filter(b=>b.id!==d.dataset.del);save();renderBdays();return}
+  const cp=e.target.closest("[data-copy]");if(cp){try{await navigator.clipboard.writeText(cp.dataset.copy);toast("Скопировала")}catch(err){toast("Выдели текст и скопируй")}return}
+  const w=e.target.closest("[data-wish]");if(!w)return;const b=S.bdays.find(x=>x.id===w.dataset.wish);const arr=WISH[b.who]||WISH.friend;const text=arr[(wishIdx++)%arr.length].replace("{n}",b.name);
+  const box=$('[data-wbox="'+b.id+'"]');box.innerHTML='<div class="bubble" style="margin-top:8px;font-weight:600">'+esc(text)+(b.note?'<br><span class="muted small">Идея подарка: что-то связанное с «'+esc(b.note)+'».</span>':"")+'</div><button class="btn soft" style="margin-top:8px;padding:6px 12px" data-copy="'+esc(text)+'">Скопировать</button>';
+};
+
+/* ---------- habits ---------- */
+const HCOL=["#E0314B","#EE9DB0","#A61E38","#F5A3B5","#F07D93"];let hColor=HCOL[0];
+$("#habitColors").innerHTML=HCOL.map(c=>'<button type="button" data-c="'+c+'" aria-pressed="'+(c===hColor)+'" aria-label="Цвет" style="width:34px;height:34px;padding:0;background:'+c+'"></button>').join("");
+$("#habitColors").onclick=e=>{const b=e.target.closest("button");if(!b)return;hColor=b.dataset.c;[...$("#habitColors").children].forEach(x=>x.setAttribute("aria-pressed",x===b))};
+$("#habitForm").onsubmit=e=>{e.preventDefault();const n=$("#habitName").value.trim();if(!n)return;S.habits.push({id:uid(),name:n,color:hColor,days:{}});$("#habitName").value="";save();renderHabits()};
+let calMonth=new Date();calMonth.setDate(1);
+function toggleHabit(id,k){const h=S.habits.find(x=>x.id===id);if(!h)return;if(k>todayKey())return;if(h.days[k]){delete h.days[k];S.points=Math.max(0,S.points-10);save()}else{h.days[k]=1;addPoints(10,"привычка");cheer()}renderHabits();renderBear()}
+function streak(h){let n=0,d=new Date(todayKey());if(!h.days[keyOf(d)])d=addDays(d,-1);while(h.days[keyOf(d)]){n++;d=addDays(d,-1)}return n}
+function renderHabits(){
+  const t=new Date(todayKey());const mon=addDays(t,-((t.getDay()+6)%7));
+  const days=Array.from({length:7},(_,i)=>addDays(mon,i));
+  $("#weekGrid").innerHTML=S.habits.length?S.habits.map(h=>'<div><div class="habit-head"><span class="dot" style="background:'+h.color+'"></span><span class="grow small" style="font-weight:700">'+esc(h.name)+'</span></div><div class="week">'+days.map((d,i)=>{const k=keyOf(d),on=!!h.days[k];return '<button class="day'+(on?" on":"")+(k===todayKey()?" today":"")+(k>todayKey()?" future":"")+'" style="'+(on?"background:"+h.color:"")+'" data-h="'+h.id+'" data-k="'+k+'" aria-label="'+WD[i]+'">'+WD[i]+'</button>'}).join("")+'</div></div>').join(""):'<p class="small muted">Добавь первую привычку внизу.</p>';
+  const y=calMonth.getFullYear(),m=calMonth.getMonth();const first=(new Date(y,m,1).getDay()+6)%7;const len=new Date(y,m+1,0).getDate();
+  $("#habitCals").innerHTML=S.habits.map(h=>{
+    const total=Object.keys(h.days).filter(k=>k.startsWith(y+"-"+pad(m+1))).length;
+    let cells=WD.map(w=>'<span class="wd">'+w+'</span>').join("");
+    for(let i=0;i<first;i++)cells+='<span class="day empty"></span>';
+    for(let d=1;d<=len;d++){const k=y+"-"+pad(m+1)+"-"+pad(d),on=!!h.days[k];cells+='<button class="day'+(on?" on":"")+(k===todayKey()?" today":"")+(k>todayKey()?" future":"")+'" style="'+(on?"background:"+h.color:"")+'" data-h="'+h.id+'" data-k="'+k+'" aria-label="'+d+'">'+d+'</button>'}
+    const st=streak(h);
+    return '<div class="card"><div class="habit-head"><span class="dot" style="background:'+h.color+'"></span><h2 class="grow" style="margin:0">'+esc(h.name)+'</h2><button class="x" data-hdel="'+h.id+'" aria-label="Удалить привычку">×</button></div><div class="row wrap" style="margin-bottom:10px"><span class="pill">'+total+' '+plural(total,"день","дня","дней")+' в '+["январе","феврале","марте","апреле","мае","июне","июле","августе","сентябре","октябре","ноябре","декабре"][m]+'</span>'+(st>1?'<span class="pill red">'+st+' подряд</span>':"")+'</div><div class="row" style="margin-bottom:8px"><button class="btn ghost" data-mon="-1" aria-label="Прошлый месяц">‹</button><b class="grow" style="text-align:center">'+MONTHS_N[m]+' '+y+'</b><button class="btn ghost" data-mon="1" aria-label="Следующий месяц">›</button></div><div class="cal">'+cells+'</div></div>';
+  }).join("");
+}
+function habitClick(e){
+  const del=e.target.closest("[data-hdel]");if(del){if(S.habits.length&&confirmDel(del)){S.habits=S.habits.filter(h=>h.id!==del.dataset.hdel);save();renderHabits()}return}
+  const mb=e.target.closest("[data-mon]");if(mb){calMonth.setMonth(calMonth.getMonth()+(+mb.dataset.mon));renderHabits();return}
+  const b=e.target.closest("[data-h]");if(b)toggleHabit(b.dataset.h,b.dataset.k);
+}
+function confirmDel(btn){if(btn.dataset.sure){return true}btn.dataset.sure="1";btn.textContent="удалить?";setTimeout(()=>{btn.dataset.sure="";btn.textContent="×"},2500);return false}
+$("#weekGrid").onclick=habitClick;$("#habitCals").onclick=habitClick;
+
+/* ---------- cleaning ---------- */
+const ZONES={all:"Везде",kitchen:"Кухня",bath:"Ванная",room:"Комната",hall:"Прихожая"};
+const CLEAN=[
+ ["kitchen","Помыть посуду, которая уже в раковине",10],["kitchen","Протереть столешницу",5],["kitchen","Выбросить просрочку из холодильника",5],["kitchen","Протереть плиту",10],["kitchen","Вынести мусор",5],["kitchen","Разобрать одну полку",10],
+ ["bath","Протереть раковину и кран",5],["bath","Протереть зеркало",5],["bath","Закинуть стирку",5],["bath","Убрать баночки на места",5],["bath","Помыть унитаз",10],["bath","Повесить свежие полотенца",5],
+ ["room","Заправить кровать",5],["room","Собрать одежду со стула",10],["room","Протереть пыль на одной поверхности",5],["room","Убрать 10 вещей на свои места",10],["room","Пропылесосить середину комнаты",10],["room","Разобрать прикроватную тумбочку",10],["room","Проветрить комнату",5],
+ ["hall","Расставить обувь",5],["hall","Убрать пакеты и коробки",5],["hall","Протереть пол у входа",10],["hall","Разобрать сумку",5],["hall","Повесить куртки",5]
+];
+let zone=S.zone||"all",curClean=null;
+$("#zoneSeg").innerHTML=Object.entries(ZONES).map(([k,v])=>'<button type="button" data-z="'+k+'" aria-pressed="'+(k===zone)+'">'+v+'</button>').join("");
+$("#zoneSeg").onclick=e=>{const b=e.target.closest("button");if(!b)return;zone=b.dataset.z;S.zone=zone;save();[...$("#zoneSeg").children].forEach(x=>x.setAttribute("aria-pressed",x===b));pickClean()};
+function pickClean(){const pool=CLEAN.filter(c=>zone==="all"||c[0]===zone).filter(c=>!curClean||c[1]!==curClean[1]);curClean=pool[Math.floor(Math.random()*pool.length)];$("#cleanZone").textContent=ZONES[curClean[0]];$("#cleanTask").textContent=curClean[1];$("#cleanMin").textContent="примерно "+curClean[2]+" мин";$("#cleanStart").textContent="Начать"}
+$("#cleanPick").onclick=pickClean;
+$("#cleanStart").onclick=()=>{if(!curClean)pickClean();const c=curClean;openTimer(c[1],"Уборка",c[2],()=>{const k=todayKey();(S.clean[k]=S.clean[k]||[]).push(c[1]);addPoints(20,"уборка");renderClean();pickClean()})};
+function renderClean(){const l=S.clean[todayKey()]||[];$("#cleanDoneList").innerHTML=l.length?l.map(t=>'<li class="item done"><span class="check on">'+CHECK+'</span><span class="t">'+esc(t)+'</span></li>').join(""):'<li class="small muted">Пока ничего, и это нормально.</li>'}
+
+/* ---------- timer ---------- */
+let tTotal=0,tLeft=0,tRun=false,tInt=null,tDone=null;
+const CIRC=326.7;
+function fmt(s){return pad(Math.floor(s/60))+":"+pad(s%60)}
+function drawTimer(){$("#timerNum").textContent=fmt(Math.max(0,tLeft));$("#ringArc").style.strokeDashoffset=String(CIRC*(1-tLeft/tTotal))}
+function setLen(min){tTotal=tLeft=min*60;drawTimer();[...$("#timerLen").children].forEach(b=>b.setAttribute("aria-pressed",+b.dataset.m===min))}
+$("#timerLen").innerHTML=[5,10,15,25].map(m=>'<button type="button" data-m="'+m+'">'+m+' мин</button>').join("");
+$("#timerLen").onclick=e=>{const b=e.target.closest("button");if(b)setLen(+b.dataset.m)};
+function tick(){tLeft--;drawTimer();if(tLeft<=0){stopT();$("#timerNum").textContent="Время!";try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}toast("Время вышло. Ты молодец!")}}
+function startT(){if(tRun)return;tRun=true;tInt=setInterval(tick,1000);$("#timerPause").textContent="Пауза"}
+function stopT(){tRun=false;clearInterval(tInt);$("#timerPause").textContent="Продолжить"}
+function openTimer(title,tag,min,onDone){$("#timerTitle").textContent=title;$("#timerTag").textContent=tag;tDone=onDone;setLen(min);$("#timerModal").classList.add("on");startT()}
+$("#timerPause").onclick=()=>{if(tRun)stopT();else{if(tLeft<=0)setLen(5);startT()}};
+$("#timerPlus").onclick=()=>{tLeft+=300;tTotal+=300;drawTimer();if(!tRun)startT()};
+$("#timerClose").onclick=()=>{stopT();$("#timerModal").classList.remove("on")};
+$("#timerDone").onclick=()=>{stopT();$("#timerModal").classList.remove("on");if(tDone)tDone();else{addPoints(10,"фокус")}cheer()};
+
+/* ---------- calendar export ---------- */
+function icsEsc(s){return String(s).replace(/\\/g,"\\\\").replace(/;/g,"\\;").replace(/,/g,"\\,").replace(/\n/g,"\\n")}
+function dt(k,t){return k.replace(/-/g,"")+"T"+(t||"09:00").replace(":","")+"00"}
+function buildICS(){
+  const now=new Date(),stamp=keyOf(now).replace(/-/g,"")+"T000000Z",tk=todayKey();
+  const L=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Mishka//RU","CALSCALE:GREGORIAN","X-WR-CALNAME:Мишка-помощник"];
+  const ev=(id,start,summary,rrule,alarms,allDay,desc)=>{L.push("BEGIN:VEVENT","UID:"+id+"@mishka","DTSTAMP:"+stamp,allDay?"DTSTART;VALUE=DATE:"+start:"DTSTART:"+start,allDay?"":"DURATION:PT15M","SUMMARY:"+icsEsc(summary));if(desc)L.push("DESCRIPTION:"+icsEsc(desc));if(rrule)L.push("RRULE:"+rrule);alarms.forEach(a=>L.push("BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:"+icsEsc(summary),"TRIGGER:"+a,"END:VALARM"));L.push("END:VEVENT")};
+  for(let h=10;h<=20;h+=S.water.every)ev("water"+h,dt(tk,pad(h)+":00"),"Стакан воды",  "FREQ=DAILY",["PT0M"],false,"Мишка просит попить");
+  S.meds.forEach(m=>ev("med"+m.id,dt(tk,m.time),"Принять: "+m.name,"FREQ=DAILY",["PT0M"],false));
+  S.plans.filter(p=>!p.done&&p.date>=tk).forEach(p=>ev("plan"+p.id,dt(p.date,p.time||"09:00"),CATS[p.cat]+": "+p.title,null,["-P1D","-PT2H"],false,p.where||""));
+  S.msgs.filter(m=>!m.done&&m.date).forEach(m=>ev("msg"+m.id,dt(m.date<tk?tk:m.date,"12:00"),"Написать: "+m.who,null,["PT0M"],false,m.what||""));
+  upcomingBdays().forEach(b=>{const y=addDays(new Date(tk),b.days).getFullYear();ev("bd"+b.id,y+pad(b.m)+pad(b.d),"День рождения: "+b.name,"FREQ=YEARLY",["-P7D","PT9H"],true,b.note?"Любит: "+b.note:"")});
+  L.push("END:VCALENDAR");
+  return L.filter(Boolean).join("\r\n");
+}
+$("#icsBtn").onclick=async()=>{
+  const data=buildICS();
+  try{
+    const dl=window.claude&&window.claude.use?await window.claude.use("downloads"):null;
+    if(!dl)throw new Error("no");
+    await dl.save({filename:"mishka-napominaniya.ics",data:data});
+    $("#icsNote").textContent="Готово! Открой скачанный файл и выбери «Google Календарь».";
+  }catch(e){
+    try{await navigator.clipboard.writeText(data);$("#icsNote").textContent="Скачать не получилось, поэтому я скопировала содержимое файла."}catch(e2){$("#icsNote").textContent="Скачивание недоступно в этом окне. Открой приложение по ссылке в браузере."}
+  }
+};
+
+/* ---------- nav ---------- */
+const VIEWS=["today","plans","habits","home","bear"];
+function show(v){if(!VIEWS.includes(v))v="today";VIEWS.forEach(x=>$("#v-"+x).classList.toggle("on",x===v));document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-current",b.dataset.v===v?"page":"false"));window.scrollTo(0,0)}
+document.querySelector("nav.tabs").onclick=e=>{const b=e.target.closest("button");if(!b)return;show(b.dataset.v);try{history.replaceState(null,"","#"+b.dataset.v)}catch(err){location.hash=b.dataset.v}};
+window.addEventListener("hashchange",()=>show(location.hash.slice(1)));
+
+function renderAll(){renderWater();renderOne();renderDump();renderMeds();renderTasks();renderPlans();renderBdays();renderHabits();renderClean();renderBear()}
+renderAll();pickClean();show(location.hash.slice(1)||"today");
+if(window.Android){
+  const card=$("#icsBtn").closest(".card");
+  card.querySelector("p").textContent="Напоминания включены: телефон сам напомнит про воду каждые 2 часа, лекарства, события (за день и за 2 часа), сообщения и дни рождения (за неделю и утром).";
+  $("#icsBtn").textContent="Проверить уведомление";
+  $("#icsBtn").onclick=()=>{try{window.Android.test()}catch(e){}};
+  syncNative();
+}
+setInterval(()=>{renderWater();renderBear()},60000);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)renderAll()});
+})();
+</script>
+</body>
+</html>
